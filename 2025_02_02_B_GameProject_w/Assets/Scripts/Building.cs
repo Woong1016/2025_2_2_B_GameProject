@@ -7,8 +7,7 @@ using UnityEngine.Events;
 public class Building : MonoBehaviour
 {
 
-
-    [Header("건물")]
+    [Header("건물 정보")]
 
     public BuildingType BuildingType;
     public string buildingname = "건물";
@@ -25,6 +24,10 @@ public class Building : MonoBehaviour
 
     public BuildingEvents buildingEvents;
 
+    void Start()
+    {
+        SetupBuilding();
+    }
     void HandleDriverService (DeliveryDriver driver)
     {
         switch(BuildingType)
@@ -37,6 +40,7 @@ public class Building : MonoBehaviour
                 Debug.Log($"{buildingname}에서 배달 완료");
                 driver.CompleteDelivery();
                 break;
+
             case BuildingType.ChargingStation:
                 Debug.Log($"{buildingname}에서 배터리를 충전했습니다");
                 driver.ChargeBattery();
@@ -68,10 +72,7 @@ public class Building : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    
 
     // Update is called once per frame
     void Update()
@@ -79,7 +80,7 @@ public class Building : MonoBehaviour
         
     }
 
-    void SetupBuilding()
+    private void SetupBuilding()
     {
         Renderer renderer = GetComponent<Renderer>();
 
@@ -99,7 +100,7 @@ public class Building : MonoBehaviour
                     buildingname = "고객 집";
                     break;
 
-                    case BuildingType.ChargingStation:  
+                case BuildingType.ChargingStation:  
                     mat .color = Color.yellow   ;
                     buildingname = "충전소";
                     break;

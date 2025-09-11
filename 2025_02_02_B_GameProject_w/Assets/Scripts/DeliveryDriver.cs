@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Experimental.GlobalIllumination;
-using UnityEngine.Rendering;
 public class DeliveryDriver : MonoBehaviour
 {
 
@@ -29,7 +27,7 @@ public class DeliveryDriver : MonoBehaviour
         public UnityEvent OnMoveStoped;
 
         [Header("상태변화 Event")]
-        public UnityEvent<float> OnMoneyChaged;
+        public UnityEvent<float> OnMoneyChanged;
         public UnityEvent<float> OnBatteryChanged;
         public UnityEvent<int> OnDeliveryCountChanged;
 
@@ -39,15 +37,17 @@ public class DeliveryDriver : MonoBehaviour
         public UnityEvent OnDeliveryCompleted;
     }
 
-    public DriverEvents driverevent;
+   
+
+    public DriverEvents driverEvents;
 
     public bool isMoving = false;
     // Start is called before the first frame update
     void Start()
     {
-        driverevent.OnMoneyChaged?.Invoke(currentMoney);
-        driverevent.OnBatteryChanged?.Invoke(batteryLevel);
-        driverevent.OnDeliveryCountChanged?.Invoke(deliveryCount);
+        driverEvents.OnMoneyChanged?.Invoke(currentMoney);
+        driverEvents.OnBatteryChanged?.Invoke(batteryLevel);
+        driverEvents.OnDeliveryCountChanged?.Invoke(deliveryCount);
 
 
     }
@@ -57,11 +57,6 @@ public class DeliveryDriver : MonoBehaviour
     {
         HandleMovement();
         UpdateBattery();
-
-
-
-
-
     }
 
 
@@ -72,7 +67,7 @@ public class DeliveryDriver : MonoBehaviour
 
             if (isMoving)
             {
-
+                StopMoving();
             }
             return;
 
@@ -83,23 +78,23 @@ public class DeliveryDriver : MonoBehaviour
 
         Vector3 moveDirection = new Vector3(horizontal, 0, vertical);
 
+
+
         if (moveDirection.magnitude > 0.1f)
         {
-
             if(!isMoving)
             {
                 StartMoving();
             }
 
-
             moveDirection = moveDirection.normalized;
 
             transform.Translate(moveDirection * moveSpeed * Time.deltaTime, Space.World);
 
-            if(moveDirection != Vector3.zero)
+            if (moveDirection != Vector3.zero)
             {
-                Quaternion targetRoatation = Quaternion.LookRotation(moveDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRoatation, rotationSpeed * Time.deltaTime);
+                Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
 
             }
@@ -107,53 +102,47 @@ public class DeliveryDriver : MonoBehaviour
         }
         else
         {
-
-
             if (isMoving)
             {
                 StopMoving();
             }
-
         }
     }
-
-
-    void ChangedBattery(float amout)
+    void ChangedBattery(float amount)
     {
         float oldBattery = batteryLevel;
 
-        batteryLevel += amout;
+        batteryLevel += amount;
         batteryLevel = Mathf.Clamp(batteryLevel, 0, 100);
 
-        driverevent.OnBatteryChanged?.Invoke(batteryLevel);
+        driverEvents.OnBatteryChanged?.Invoke(batteryLevel);
 
 
-        if(oldBattery >20f && batteryLevel <= 20f)
+        if (oldBattery > 20f && batteryLevel <= 20f)
         {
-            driverevent.OnLowBattery?.Invoke();
+            driverEvents.OnLowBattery?.Invoke();
         }
         if (oldBattery > 0f && batteryLevel <= 0f)
         {
-            driverevent.OnLowBatteryEmpty?.Invoke(); 
+            driverEvents.OnLowBatteryEmpty?.Invoke();
         }
-
     }
-    void StartMoving()
+    private void StartMoving()
     {
-        isMoving=true;
-        driverevent.OnMoveStarted?.Invoke();
+        isMoving = true;
+        driverEvents.OnMoveStarted?.Invoke();
     }
 
 
-    void StopMoving()
+    private void StopMoving()
     {
-        isMoving= false;
-        driverevent?.OnMoveStoped?.Invoke();
+        isMoving = false;
+        driverEvents?.OnMoveStoped?.Invoke();
     }
 
 
 
-    void UpdateBattery()
+    private void UpdateBattery()
     {
         if(batteryLevel > 0 )
         {
@@ -165,34 +154,26 @@ public class DeliveryDriver : MonoBehaviour
     public void AddMoney(float amount)
     {
         currentMoney += amount;
-        driverevent.OnMoneyChaged?.Invoke(currentMoney);
-
+        driverEvents.OnMoneyChanged?.Invoke(currentMoney);
     }
 
     public void CompleteDelivery()
-
     {
-
         deliveryCount++;
-        float reward = Random.Range(3000,3000);
+        float reward = Random.Range(3000,8000);
 
         AddMoney(reward);
-        driverevent.OnDeliveryCountChanged?.Invoke(deliveryCount);
-        driverevent.OnDeliveryCompleted?.Invoke();
-
+        driverEvents.OnDeliveryCountChanged?.Invoke(deliveryCount);
+        driverEvents.OnDeliveryCompleted?.Invoke();
     }
-
     public void ChargeBattery()
     {
         ChangedBattery(100f - batteryLevel);
-
     }
 
     public string GetStatusText()
     {
-        return $"돈  : {currentMoney:F0}  원 | 배터리 : {batteryLevel:F1}% | 배달 {deliveryCount} 건 ";
-
-
+        return $"돈 : {currentMoney:F0} 원 | 배터리 : {batteryLevel:F1}% | 배달 : {deliveryCount} 건"; return $"돈  : {currentMoney:F0} 원 | 배터리 : {batteryLevel:F1}% | 배달 : {deliveryCount} 건 ";
     }
 
     public bool CanMove()
