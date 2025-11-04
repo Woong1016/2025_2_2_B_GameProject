@@ -24,6 +24,18 @@ public class MazeGenerator : MonoBehaviour
     private MazeCell[,] maze;
     private Stack<MazeCell> cellStack;
     // Start is called before the first frame update
+
+
+    public MazeCell[,] Maze;
+    private Stack<MazeCell> cellstack;
+
+    public void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
     void Start()
     {
         GenerateMaze();
